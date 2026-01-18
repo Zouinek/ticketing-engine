@@ -1,0 +1,49 @@
+package com.ticketmaster.ticketing_engine.controller;
+
+
+import com.ticketmaster.ticketing_engine.service.EventService;
+import com.ticketmaster.ticketing_engine.entity.Event;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/events")
+@RequiredArgsConstructor
+public class EventController {
+
+    private final EventService eventService;
+
+    @GetMapping
+    public List<Event> getAllEvents() {
+        return eventService.getAllEvents();
+    }
+
+    @GetMapping("/{id}")
+    public Event getEventsById(@PathVariable Long id) {
+        return eventService.getEventById(id);
+    }
+
+
+    @PostMapping
+    public Event createEvent(@RequestBody Event newEvent) {
+        return eventService.createEvent(newEvent);
+    }
+
+    @PutMapping("/{id}")
+    public Event updateEvent(@PathVariable Long id, @RequestBody Event newEvent) {
+        return eventService.updateEvent(id,newEvent);
+    }
+    @DeleteMapping("/{id}")
+    public void deleteEvent(@PathVariable Long id) {
+        eventService.deleteEvent(id);
+    }
+
+    @GetMapping("/{id}/buy")
+    public String buyTicket(@PathVariable Long id) {
+        return eventService.buyTicket(id);
+    }
+
+}

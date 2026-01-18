@@ -1,10 +1,12 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+### IDE Files ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.DS_Store
 
-### STS ###
+### Eclipse / STS ###
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +15,10 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+### Build Results (Recursive) ###
+target/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
+.mvn/wrapper/maven-wrapper.jar
+HELP.md
+### Secrets (Crucial!) ###
+*.env

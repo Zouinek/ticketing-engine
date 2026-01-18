@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    private final EventRepository eventRepository;\
+    private final EventRepository eventRepository;
 
     public DataSeeder(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
@@ -23,11 +23,13 @@ public class DataSeeder implements CommandLineRunner {
             Event testEvent = Event.builder()
                     .name("Taylor Swift - Eras Tour")
                     .location("Munich Olympic Stadium")
-                    .data(LocalDateTime.now().plusMonths(3))
+                    .date(LocalDateTime.now().plusMonths(3))
+                    .ticketPrice(199.99)
+                    .totalTickets(100)
                     .build();
 
             eventRepository.save(testEvent);
-            System.out.println("✅ SUCCESS: Test Event inserted into Database!");
+            System.out.println("SUCCESS: Test Event inserted into Database!");
         }
     }
 }

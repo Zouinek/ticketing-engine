@@ -17,7 +17,10 @@ public class Event {
     private Long id;
 
     private String name;
-    private LocalDateTime data;
+    private LocalDateTime date;
     private String location;
+    private double ticketPrice;
+    private int totalTickets;
+
 
 }
