@@ -9,6 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * <h1>Event Management Controller</h1>
+ * <p>
+ * Handles the lifecycle of concert events.
+ * This controller allows Admins to create events and Users to view/buy tickets.
+ * </p>
+ */
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
