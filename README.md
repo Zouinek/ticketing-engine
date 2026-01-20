@@ -6,28 +6,31 @@
 ![Purpose](https://img.shields.io/badge/Purpose-Educational-555?style=for-the-badge)
 ![Security](https://img.shields.io/badge/Security-JWT-EF4444?style=for-the-badge)
 
-A **microservices-style event ticketing platform** built with **Java 17 + Spring Boot**.
+A **microservices-style event ticketing platform** built with **Java 17 + Spring Boot 3**. The goal is to practice real-world backend design: **clear service boundaries**, **independent deployability**, and a **database per service**.
 
-This repo is organized as a **Maven multi-module** project where each module is a separate Spring Boot application (service). The goal is to practice real microservice boundaries: **independent deployable services, separate databases, and clear service ownership**.
+This repository is a **Maven multi-module** project where each module is a separate Spring Boot application.
 
-> Vision: a scalable ticketing system with auth, event catalog, booking/reservations, payments (Stripe), search, and notifications.
+---
+
+## Architecture (at a glance)
+- **Microservices**: each service is deployed and scaled independently.
+- **Database-per-service**: each service owns its schema and persists its own data.
+- **No shared JPA entities across services**: shared contracts should be APIs/events, not shared persistence models.
 
 ---
 
 ## Services
 
-### Implemented / active
-- **auth-service**: registration/login + JWT authentication/authorization
-- **event-service**: event CRUD / event catalog domain (WIP)
-- **notification-service**: placeholder for async notifications (WIP)
+### Current
+- **auth-service** – user registration/login, JWT authentication & authorization
+- **event-service** – event catalog (CRUD) *(WIP)*
+- **notification-service** – notifications foundation *(WIP)*
 
-### Planned (roadmap)
-- **api-gateway**: single entry point (routing, auth enforcement, rate limiting)
-- **booking-service**: seat reservation / ticket purchase workflow, concurrency handling
-- **payment-service (Stripe)**: payment intents, webhooks, payment status
-- **search-service**: full-text search for events (e.g., Elasticsearch/OpenSearch) 
-
-> Each service should own its data. Avoid sharing JPA entities across services.
+### Planned
+- **api-gateway** – single entry point (routing, auth enforcement, rate limiting)
+- **booking-service** – reservation workflow, seat/ticket locking, concurrency handling
+- **payment-service** – Stripe integration (payment intents + webhooks)
+- **search-service** – hybrid search (keyword + semantic/vector search)
 
 ---
 
@@ -37,149 +40,89 @@ This repo is organized as a **Maven multi-module** project where each module is 
 - Spring Security + JWT
 - Spring Data JPA + Hibernate
 - PostgreSQL 16 (Docker)
-- Maven (multi-module)
+- Maven multi-module
 
 ---
 
 ## Repository structure
-This is a **Maven parent** project with multiple Spring Boot apps.
-
 ```
 ./
-  pom.xml                    # parent POM
-  compose.yaml               # local infra (PostgreSQL containers)
+  pom.xml              # parent POM
+  compose.yaml         # local infra (PostgreSQL containers)
   auth-service/
   event-service/
   notification-service/
-  # (planned)
-  # api-gateway/
-  # booking-service/
-  # payment-service/
-  # search-service/
 ```
-
-Each service has its own `pom.xml` and `src/main/...`.
 
 ---
 
-## Local development
+## Getting started (local)
 
-### 1) Start infrastructure (PostgreSQL)
-From the repo root:
-
+### 1) Start the infrastructure
 ```bash
 docker compose up -d
 ```
 
-> If you change DB credentials or ports, update both `compose.yaml` and the service `application.properties`.
-
-### 2) Run a single service
-From the repo root:
-
+### 2) Run a service
 ```bash
 ./mvnw -pl auth-service spring-boot:run
 ```
-
-Run another service:
 
 ```bash
 ./mvnw -pl event-service spring-boot:run
 ```
 
+### 3) Build everything
+```bash
+./mvnw clean verify
+```
+
 ---
 
-## Databases (Docker)
-Defined in `compose.yaml`.
+## Databases
+Defined in `compose.yaml` (database-per-service).
 
-Typical setup:
-- `auth-db`  → Postgres on `localhost:5432`, database `authdb`
-- `event-db` → Postgres on `localhost:5433`, database `eventdb`
+Typical local mapping:
+- `auth-db`  → `localhost:5432`, database `authdb`
+- `event-db` → `localhost:5433`, database `eventdb`
 
-Default credentials (from `compose.yaml`):
+Default credentials:
 - user: `admin`
 - password: `password`
 
 ---
 
-## Build
-Build everything:
-
-```bash
-./mvnw clean verify
-```
-
-Build one module only:
-
-```bash
-./mvnw -pl auth-service clean verify
-```
-
----
-
-## Auth Service
-
-### API
-- Swagger UI (if enabled):
-  - http://localhost:8080/swagger-ui/index.html
-- Status:
-  - `GET /api/v1/system/status`
+## API (auth-service)
+- Swagger UI (if enabled): http://localhost:8080/swagger-ui/index.html
+- Health/Status: `GET /api/v1/system/status`
 - Auth:
   - `POST /api/v1/auth/register`
   - `POST /api/v1/auth/authenticate`
 
-### JWT usage
-After register/login, send the token with:
-- Header: `Authorization: Bearer <JWT>`
-
-If you get **403**, it usually means:
-- you’re calling a protected endpoint without a token
-- the token is expired / signed with a different secret
-- the endpoint isn’t whitelisted in `SecurityConfig`
-
----
-
-## “Why don’t I see my tables in IntelliJ?”
-Hibernate creates tables inside the **database + schema** you’re connected to.
-
-In IntelliJ Database tool window:
-1. Verify the DataSource points to the correct host/port:
-   - `5432` for `auth-db`, `5433` for `event-db`
-2. Verify the database name:
-   - `authdb` or `eventdb`
-3. Check schema:
-   - `public` (default)
-4. Click **Refresh** / **Synchronize**
-
-Also note: if you use `spring.jpa.hibernate.ddl-auto=create` or `create-drop`, tables can be dropped/recreated each restart.
+JWT header:
+- `Authorization: Bearer <JWT>`
 
 ---
 
 ## Roadmap
-- [ ] Add **API Gateway** (Spring Cloud Gateway)
-- [ ] Add **Booking service** (reservations + concurrency)
-- [ ] Add **Payment service** (Stripe payment intents + webhooks)
-- [ ] Add **Search service** (Elasticsearch/OpenSearch)
-- [ ] Add async messaging for notifications (Kafka/RabbitMQ)
-- [ ] Add Dockerfiles per service + full compose to run everything
-- [ ] Add tests (unit + integration)
-- [ ] Observability: logs/metrics/tracing (Micrometer + OpenTelemetry)
+- [ ] API Gateway (Spring Cloud Gateway)
+- [ ] Booking Service (reservations + concurrency)
+- [ ] Payment Service (Stripe payment intents + webhooks)
+- [ ] Search Service (keyword + semantic search)
+- [ ] Async messaging for notifications (Kafka/RabbitMQ)
+- [ ] Observability (Micrometer + OpenTelemetry)
+- [ ] Tests (unit + integration)
 
 ---
 
-## LinkedIn-ready description
-**High-Performance Event Ticketing Engine** is a microservices-style ticketing platform I’m building in **Java 17 / Spring Boot 3** to practice real-world backend architecture.
+## OpenAI / LLM usage (planned)
+Primary target is the **search-service** for **semantic search** (embeddings) and **hybrid retrieval**.
 
-What I’ve built so far:
-- a dedicated **Auth Service** with **JWT-based authentication & authorization**
-- a multi-module Maven structure that supports independent services and clean boundaries
-- local infra with **PostgreSQL (Docker)** per service
+Potential extensions:
+- **support/assistant-service** – Q&A / RAG over events, venues, policies
+- **notification-service** – optional templated personalization and localization
 
-What’s coming next:
-- **API Gateway** for routing and centralized security
-- **Booking Service** for reservations and ticket purchase workflows (with concurrency handling)
-- **Payment Service** integrating **Stripe** (payment intents + webhooks)
-- **Search Service** for fast event discovery
-- async notifications via messaging (Kafka/RabbitMQ) and better observability/testing
+LLMs are intentionally **not** planned for auth/booking/payment flows to keep security and consistency deterministic.
 
 ---
 
