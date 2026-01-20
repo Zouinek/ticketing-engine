@@ -6,14 +6,28 @@
 ![Purpose](https://img.shields.io/badge/Purpose-Educational-555?style=for-the-badge)
 ![Security](https://img.shields.io/badge/Security-JWT-EF4444?style=for-the-badge)
 
-A Java 17 + Spring Boot learning project that’s being refactored into a **microservices-style, Maven multi-module** repository.
+A **microservices-style event ticketing platform** built with **Java 17 + Spring Boot**.
 
-**Current services**
+This repo is organized as a **Maven multi-module** project where each module is a separate Spring Boot application (service). The goal is to practice real microservice boundaries: **independent deployable services, separate databases, and clear service ownership**.
+
+> Vision: a scalable ticketing system with auth, event catalog, booking/reservations, payments (Stripe), search, and notifications.
+
+---
+
+## Services
+
+### Implemented / active
 - **auth-service**: registration/login + JWT authentication/authorization
-- **event-service**: event CRUD / ticketing domain (WIP)
+- **event-service**: event CRUD / event catalog domain (WIP)
 - **notification-service**: placeholder for async notifications (WIP)
 
-> Goal: evolve this into a clean microservices architecture: separate services, separate databases, clear boundaries, and (later) async messaging.
+### Planned (roadmap)
+- **api-gateway**: single entry point (routing, auth enforcement, rate limiting)
+- **booking-service**: seat reservation / ticket purchase workflow, concurrency handling
+- **payment-service (Stripe)**: payment intents, webhooks, payment status
+- **search-service**: full-text search for events (e.g., Elasticsearch/OpenSearch) 
+
+> Each service should own its data. Avoid sharing JPA entities across services.
 
 ---
 
@@ -33,10 +47,15 @@ This is a **Maven parent** project with multiple Spring Boot apps.
 ```
 ./
   pom.xml                    # parent POM
-  compose.yaml               # local PostgreSQL containers
+  compose.yaml               # local infra (PostgreSQL containers)
   auth-service/
   event-service/
   notification-service/
+  # (planned)
+  # api-gateway/
+  # booking-service/
+  # payment-service/
+  # search-service/
 ```
 
 Each service has its own `pom.xml` and `src/main/...`.
@@ -45,7 +64,7 @@ Each service has its own `pom.xml` and `src/main/...`.
 
 ## Local development
 
-### 1) Start dependencies (PostgreSQL)
+### 1) Start infrastructure (PostgreSQL)
 From the repo root:
 
 ```bash
@@ -135,19 +154,32 @@ Also note: if you use `spring.jpa.hibernate.ddl-auto=create` or `create-drop`, t
 
 ---
 
-## Microservices conventions (intentional design)
-- Don’t share entities between services (each service owns its data)
-- Separate databases per service (already set up in `compose.yaml`)
-- Prefer HTTP between services first; later add async messaging
+## Roadmap
+- [ ] Add **API Gateway** (Spring Cloud Gateway)
+- [ ] Add **Booking service** (reservations + concurrency)
+- [ ] Add **Payment service** (Stripe payment intents + webhooks)
+- [ ] Add **Search service** (Elasticsearch/OpenSearch)
+- [ ] Add async messaging for notifications (Kafka/RabbitMQ)
+- [ ] Add Dockerfiles per service + full compose to run everything
+- [ ] Add tests (unit + integration)
+- [ ] Observability: logs/metrics/tracing (Micrometer + OpenTelemetry)
 
 ---
 
-## Roadmap
-- [ ] Add API Gateway (Spring Cloud Gateway)
-- [ ] Consider a centralized config approach (optional)
-- [ ] Add async messaging (Kafka/RabbitMQ) for notifications
-- [ ] Add Dockerfiles per service + full compose to run everything
-- [ ] Add tests (unit + integration)
+## LinkedIn-ready description
+**High-Performance Event Ticketing Engine** is a microservices-style ticketing platform I’m building in **Java 17 / Spring Boot 3** to practice real-world backend architecture.
+
+What I’ve built so far:
+- a dedicated **Auth Service** with **JWT-based authentication & authorization**
+- a multi-module Maven structure that supports independent services and clean boundaries
+- local infra with **PostgreSQL (Docker)** per service
+
+What’s coming next:
+- **API Gateway** for routing and centralized security
+- **Booking Service** for reservations and ticket purchase workflows (with concurrency handling)
+- **Payment Service** integrating **Stripe** (payment intents + webhooks)
+- **Search Service** for fast event discovery
+- async notifications via messaging (Kafka/RabbitMQ) and better observability/testing
 
 ---
 
