@@ -1,14 +1,28 @@
 services:
-  postgres:
+  auth-db:
     image: 'postgres:16'
-    container_name: 'ticket_db'
+    container_name: 'auth_db'
     environment:
-      - 'POSTGRES_DB=ticketdb'
+      - 'POSTGRES_DB=authdb'
       - 'POSTGRES_PASSWORD=password'
       - 'POSTGRES_USER=admin'
     ports:
       - '5432:5432'
     volumes:
-      - 'postgres_data:/var/lib/postgresql/data'
+      - 'auth_postgres_data:/var/lib/postgresql/data'
+
+  event-db:
+    image: 'postgres:16'
+    container_name: 'event_db'
+    environment:
+      - 'POSTGRES_DB=eventdb'
+      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_USER=admin'
+    ports:
+      - '5433:5432'
+    volumes:
+      - 'event_postgres_data:/var/lib/postgresql/data'
+
 volumes:
-  postgres_data:
+  auth_postgres_data:
+  event_postgres_data:

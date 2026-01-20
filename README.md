@@ -1,6 +1,6 @@
 # 🎟️ High-Performance Event Ticketing Engine
 
-![Java](https://img.shields.io/badge/Java-25-orange)
+![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 ![Purpose](https://img.shields.io/badge/Purpose-Educational-purple)
@@ -42,7 +42,7 @@ This engine simulates a ticketing platform (like Ticketmaster or Eventim). It ad
 
 | Component | Technology          | Reason for Choice |
 | :--- |:--------------------| :--- |
-| **Language** | Java 25             | Strong typing and massive ecosystem. |
+| **Language** | Java 17             | Strong typing and massive ecosystem. |
 | **Framework** | Spring Boot 3       | Rapid development and "Convention over Configuration". |
 | **Database** | PostgreSQL          | Robust ACID compliance for financial transactions. |
 | **Security** | Spring Security 6   | Industry standard for protecting Java apps. |
