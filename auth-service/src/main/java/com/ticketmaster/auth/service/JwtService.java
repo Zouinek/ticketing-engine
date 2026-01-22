@@ -1,6 +1,7 @@
 package com.ticketmaster.auth.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -123,8 +124,12 @@ public class JwtService {
      * @return {@code true} if the token is valid; {@code false} otherwise.
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     /**
@@ -152,7 +157,7 @@ public class JwtService {
      * @param token The JWT string.
      * @return The body (payload) of the token.
      */
-    private Claims extractAllClaimsJWT(String token) {
+    protected Claims extractAllClaimsJWT(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInkey())
                 .build()
