@@ -1,7 +1,10 @@
 package com.ticketmaster.event.entity;
 
+import com.ticketmaster.event.util.Category;
+import com.ticketmaster.event.util.Status;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 @Table(name = "events")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -37,27 +41,47 @@ public class Event {
     private Long id;
 
     /**
-     * The title of the event (e.g., "Taylor Swift - Eras Tour").
+     * The title of the event.
      */
     @Schema(description = "Name of the event", example = "Coldplay Music of the Spheres")
+    @NotBlank(message = "Event name is required")
     private String name;
+
+    /**
+     * A brief description of the event.
+     */
+    @Schema(description = "Description of the event")
+    @NotBlank(message = "Description is required")
+    private String description;
 
     /**
      * The date and time when the event starts.
      */
     @Schema(description = "Date and time of the event", example = "2025-06-15T20:00:00")
+    @NotNull(message = "Event date is required")
+    @Future(message = "Event date must be in the future")
     private LocalDateTime date;
 
     /**
      * The venue name or city.
      */
-    @Schema(description = "Venue location", example = "Wembley Stadium, London")
-    private String location;
+    @Schema(description = "Venue location", example = "10")
+    @NotNull(message = "Location is required")
+    private Long venueId;
+
+
+    /**
+     * The performer or team associated with the event.
+     */
+    @Schema(description = "Preformer", example = "5")
+    @NotNull(message = "Preformer is required")
+    private Long performerId;
 
     /**
      * Cost per single ticket.
      */
     @Schema(description = "Price per ticket", example = "150.00")
+    @Min(value = 0, message = "Ticket price must be positive")
     private double ticketPrice;
 
     /**
@@ -65,6 +89,7 @@ public class Event {
      * This number never changes after creation.
      */
     @Schema(description = "Total capacity (Max tickets)", example = "50000")
+    @Min(value = 1, message = "Total tickets must be at least 1")
     private int totalTickets;
 
     /**
@@ -89,5 +114,54 @@ public class Event {
     @Version
     private Long version;
 
+
+    @Schema(description = "Status of the event", example = "UPCOMING")
+    @NotNull(message = "Status is required")
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
+
+    @Schema(description = "Category of the event", example = "MUSIC")
+    @NotNull(message = "Category is required")
+    @Enumerated(EnumType.STRING)
+    private Category category;
+
+    /**
+     * Timestamp when this event was first created in the database.
+     * <p>
+     * This field is automatically set by JPA when the entity is persisted for the first time.
+     * It will NEVER change after creation.
+     * </p>
+     */
+    @Schema(description = "When the event was created in the system", example = "2026-01-01T10:00:00")
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    /**
+     * Timestamp when this event was last updated.
+     * <p>
+     * This field is automatically updated by JPA whenever the entity is modified.
+     * </p>
+     */
+    @Schema(description = "When the event was last updated", example = "2026-01-15T14:30:00")
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    /**
+     * Automatically sets createdAt and updatedAt before persisting a new event.
+     */
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Automatically updates the updatedAt field before updating an existing event.
+     */
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 }

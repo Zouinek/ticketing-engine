@@ -55,10 +55,14 @@ public class AuthenticationService {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .build();
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
+
+        // Add role to JWT claims
+        var claims = new java.util.HashMap<String, Object>();
+        claims.put("role", user.getRole().name());
+        var jwtToken = jwtService.generateToken(claims, user);
 
         return AuthenticationResponse.builder()
                 .token(jwtToken)
@@ -90,7 +94,11 @@ public class AuthenticationService {
         );
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
+
+        // Add role to JWT claims
+        var claims = new java.util.HashMap<String, Object>();
+        claims.put("role", user.getRole().name());
+        var jwtToken = jwtService.generateToken(claims, user);
 
         return AuthenticationResponse.builder()
                 .token(jwtToken)

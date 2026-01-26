@@ -1,9 +1,15 @@
 package com.ticketmaster.event.controller;
 
 
+import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.service.EventService;
 import com.ticketmaster.event.entity.Event;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -17,40 +23,45 @@ import java.util.List;
  * </p>
  */
 @RestController
-@RequestMapping("/events")
+@RequestMapping("/api/v1/events")
 @RequiredArgsConstructor
+@Tag(name = "Event Management", description = "APIs for managing events and ticket purchases")
 public class EventController {
 
     private final EventService eventService;
 
     @GetMapping
-    public List<Event> getAllEvents() {
-        return eventService.getAllEvents();
+    @Operation(summary = "Get all events", description = "Retrieves a list of all available events")
+    public ResponseEntity<List<Event>> getAllEvents() {
+        return ResponseEntity.ok(eventService.getAllEvents());
     }
 
     @GetMapping("/{id}")
-    public Event getEventsById(@PathVariable Long id) {
-        return eventService.getEventById(id);
+    @Operation(summary = "Get event by ID", description = "Retrieves a specific event by its unique identifier")
+    public ResponseEntity<Event> getEventsById(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.getEventById(id));
     }
 
 
     @PostMapping
-    public Event createEvent(@RequestBody Event newEvent) {
-        return eventService.createEvent(newEvent);
+    @Operation(summary = "Create new event", description = "Creates a new event (Admin only)")
+    public ResponseEntity<Event> createEvent(@Valid @RequestBody EventRequest eventRequest) {
+        Event created = eventService.createEvent(eventRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public Event updateEvent(@PathVariable Long id, @RequestBody Event newEvent) {
-        return eventService.updateEvent(id,newEvent);
-    }
-    @DeleteMapping("/{id}")
-    public void deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
+    @Operation(summary = "Update event", description = "Updates an existing event (Admin only)")
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequest eventRequest) {
+        return ResponseEntity.ok(eventService.updateEvent(id, eventRequest));
     }
 
-    @GetMapping("/{id}/buy")
-    public String buyTicket(@PathVariable Long id) {
-        return eventService.buyTicket(id);
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete event", description = "Deletes an event (Admin only)")
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
+        eventService.deleteEvent(id);
+        return ResponseEntity.noContent().build();
     }
+
 
 }

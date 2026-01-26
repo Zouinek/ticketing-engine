@@ -77,6 +77,27 @@ docker compose up -d
 ./mvnw clean verify
 ```
 
+### ⚠️ Important: Database Migration Notice
+If you previously ran `event-service` and encounter schema errors about `category` or `status` columns, you need to drop the events table:
+
+**Windows/PowerShell:**
+```powershell
+docker exec -it event_db psql -U admin -d eventdb -c "DROP TABLE IF EXISTS events CASCADE;"
+```
+
+**Mac/Linux:**
+```bash
+docker exec -it event_db psql -U admin -d eventdb -c "DROP TABLE IF EXISTS events CASCADE;"
+```
+
+**Or reset all databases:**
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+This is needed because enum storage changed from `ORDINAL` (integer) to `STRING` (varchar). Hibernate will recreate the table with the correct schema.
+
 ---
 
 ## Databases

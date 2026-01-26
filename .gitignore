@@ -5,6 +5,9 @@
 *.ipr
 .vscode/
 .DS_Store
+*.swp
+*.swo
+*~
 
 ### Eclipse / STS ###
 .apt_generated
@@ -18,7 +21,19 @@
 ### Build Results (Recursive) ###
 target/
 build/
+out/
+bin/
 .mvn/wrapper/maven-wrapper.jar
-HELP.md
-### Secrets (Crucial!) ###
+
+### Secrets & Sensitive Data (Crucial!) ###
 *.env
+.env.*
+!.env.example
+**/application-local.properties
+**/application-prod.properties
+**/application-secret.properties
+secrets/
+*.key
+*.pem
+*.p12
+*.jks
