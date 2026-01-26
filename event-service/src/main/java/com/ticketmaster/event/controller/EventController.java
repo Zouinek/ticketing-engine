@@ -2,6 +2,7 @@ package com.ticketmaster.event.controller;
 
 
 import com.ticketmaster.event.dto.request.EventRequest;
+import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.service.EventService;
 import com.ticketmaster.event.entity.Event;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,9 +52,9 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update event", description = "Updates an existing event (Admin only)")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @Valid @RequestBody EventRequest eventRequest) {
-        return ResponseEntity.ok(eventService.updateEvent(id, eventRequest));
+    @Operation(summary = "Update event", description = "Partially updates an existing event. Only send the fields you want to change. (Admin only)")
+    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @Valid @RequestBody EventUpdateRequest updateRequest) {
+        return ResponseEntity.ok(eventService.updateEvent(id, updateRequest));
     }
 
     @DeleteMapping("/{id}")

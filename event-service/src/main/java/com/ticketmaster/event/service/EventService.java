@@ -2,6 +2,7 @@ package com.ticketmaster.event.service;
 
 
 import com.ticketmaster.event.dto.request.EventRequest;
+import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.entity.Event;
 import com.ticketmaster.event.exception.EventNotFoundException;
 import com.ticketmaster.event.repository.EventRepository;
@@ -73,26 +74,47 @@ public class EventService {
     }
 
     /**
-     * Updates an existing event's details.
+     * Updates an existing event's details with partial update support.
      * <p>
-     * We fetch the existing event first to ensure it exists, then copy the new values over.
-     * Note: availableTickets and totalTickets are NOT updated here to prevent ticket count corruption.
+     * This method only updates the fields that are actually provided in the request.
+     * You can update just one field (e.g., only the name) without sending all other fields.
+     * </p>
+     * <p>
+     * <b>Note:</b> totalTickets and availableTickets are intentionally NOT updatable
+     * to prevent ticket count corruption after sales have started.
      * </p>
      * @param id The ID of the event to update.
-     * @param eventRequest The new event data from the request.
+     * @param updateRequest The update request containing only the fields to change.
      * @return The updated entity.
      */
-    public Event updateEvent(Long id, EventRequest eventRequest) {
+    public Event updateEvent(Long id, EventUpdateRequest updateRequest) {
         Event existingEvent = getEventById(id);
 
-        existingEvent.setName(eventRequest.getName());
-        existingEvent.setDescription(eventRequest.getDescription());
-        existingEvent.setDate(eventRequest.getDate());
-        existingEvent.setVenueId(eventRequest.getVenueId());
-        existingEvent.setPerformerId(eventRequest.getPerformerId());
-        existingEvent.setTicketPrice(eventRequest.getTicketPrice());
-        existingEvent.setStatus(eventRequest.getStatus());
-        existingEvent.setCategory(eventRequest.getCategory());
+        // Only update fields that are provided (not null)
+        if (updateRequest.getName() != null) {
+            existingEvent.setName(updateRequest.getName());
+        }
+        if (updateRequest.getDescription() != null) {
+            existingEvent.setDescription(updateRequest.getDescription());
+        }
+        if (updateRequest.getDate() != null) {
+            existingEvent.setDate(updateRequest.getDate());
+        }
+        if (updateRequest.getVenueId() != null) {
+            existingEvent.setVenueId(updateRequest.getVenueId());
+        }
+        if (updateRequest.getPerformerId() != null) {
+            existingEvent.setPerformerId(updateRequest.getPerformerId());
+        }
+        if (updateRequest.getTicketPrice() != null) {
+            existingEvent.setTicketPrice(updateRequest.getTicketPrice());
+        }
+        if (updateRequest.getStatus() != null) {
+            existingEvent.setStatus(updateRequest.getStatus());
+        }
+        if (updateRequest.getCategory() != null) {
+            existingEvent.setCategory(updateRequest.getCategory());
+        }
 
         // Note: We intentionally do NOT update totalTickets or availableTickets
         // to prevent accidental ticket count corruption after sales have started
