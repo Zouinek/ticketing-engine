@@ -115,7 +115,7 @@ public class Event {
     private Long version;
 
 
-    @Schema(description = "Status of the event", example = "UPCOMING")
+    @Schema(description = "Status of the event", example = "SCHEDULED", allowableValues = {"SCHEDULED", "UPCOMING", "CANCELLED", "COMPLETED"})
     @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
     private Status status;
