@@ -6,6 +6,8 @@ import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.entity.Event;
 import com.ticketmaster.event.exception.EventNotFoundException;
 import com.ticketmaster.event.repository.EventRepository;
+import com.ticketmaster.event.util.Category;
+import com.ticketmaster.event.util.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -129,6 +131,24 @@ public class EventService {
     public void deleteEvent(Long id) {
         Event eventToDelete = getEventById(id);
         eventRepository.delete(eventToDelete);
+    }
+
+    /**
+     * Retrieves all events with a specific status.
+     * @param status The status to filter by (e.g., UPCOMING, CANCELLED, COMPLETED).
+     * @return A list of events with the specified status.
+     */
+    public List<Event> getEventsByStatus(Status status) {
+        return eventRepository.findEventByStatus(status);
+    }
+
+    /**
+     * Retrieves all events with a specific category.
+     * @param category The category to filter by (e.g., UPCOMING, CANCELLED, COMPLETED).
+     * @return A list of events with the specified category.
+     */
+    public List<Event> getEventsByCategory(Category category) {
+        return eventRepository.findEventByCategory(category);
     }
 
 
