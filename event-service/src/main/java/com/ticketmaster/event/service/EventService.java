@@ -1,8 +1,13 @@
 package com.ticketmaster.event.service;
 
 
+import com.ticketmaster.event.dto.request.EventRequest;
+import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.entity.Event;
+import com.ticketmaster.event.exception.EventNotFoundException;
 import com.ticketmaster.event.repository.EventRepository;
+import com.ticketmaster.event.util.Category;
+import com.ticketmaster.event.util.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +30,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class EventService {
+
     private final EventRepository eventRepository;
 
     /**
@@ -39,43 +45,83 @@ public class EventService {
      * Finds a specific event by ID.
      * @param id The unique event ID.
      * @return The Event entity.
-     * @throws RuntimeException If the event is not found (404).
+     * @throws EventNotFoundException If the event is not found (404).
      */
     public Event getEventById(Long id) {
         return eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(() -> new EventNotFoundException(id));
     }
 
     /**
      * Saves a new event to the database.
-     * @param event The event data to save.
+     * Automatically sets availableTickets to match totalTickets.
+     * @param eventRequest The event request DTO containing the event data.
      * @return The persisted event (with generated ID).
      */
+    public Event createEvent(EventRequest eventRequest) {
+        Event event = Event.builder()
+                .name(eventRequest.getName())
+                .description(eventRequest.getDescription())
+                .date(eventRequest.getDate())
+                .venueId(eventRequest.getVenueId())
+                .performerId(eventRequest.getPerformerId())
+                .ticketPrice(eventRequest.getTicketPrice())
+                .totalTickets(eventRequest.getTotalTickets())
+                .availableTickets(eventRequest.getTotalTickets()) // Initialize to total
+                .status(eventRequest.getStatus())
+                .category(eventRequest.getCategory())
+                .build();
 
-    public Event createEvent(Event event) {
-        // TODO: In the future, initialize 'availableTickets' to match 'totalTickets' here.
         return eventRepository.save(event);
     }
 
     /**
-     * Updates an existing event's details.
+     * Updates an existing event's details with partial update support.
      * <p>
-     * We fetch the existing event first to ensure it exists, then copy the new values over.
+     * This method only updates the fields that are actually provided in the request.
+     * You can update just one field (e.g., only the name) without sending all other fields.
+     * </p>
+     * <p>
+     * <b>Note:</b> totalTickets and availableTickets are intentionally NOT updatable
+     * to prevent ticket count corruption after sales have started.
      * </p>
      * @param id The ID of the event to update.
-     * @param event The new data.
+     * @param updateRequest The update request containing only the fields to change.
      * @return The updated entity.
      */
-    public Event updateEvent(Long id, Event event) {
-        Event oldEvent = getEventById(id);
+    public Event updateEvent(Long id, EventUpdateRequest updateRequest) {
+        Event existingEvent = getEventById(id);
 
-        oldEvent.setName(event.getName());
-        oldEvent.setDate(event.getDate());
-        oldEvent.setLocation(event.getLocation());
-        oldEvent.setTicketPrice(event.getTicketPrice());
-        oldEvent.setTotalTickets(event.getTotalTickets());
+        // Only update fields that are provided (not null)
+        if (updateRequest.getName() != null) {
+            existingEvent.setName(updateRequest.getName());
+        }
+        if (updateRequest.getDescription() != null) {
+            existingEvent.setDescription(updateRequest.getDescription());
+        }
+        if (updateRequest.getDate() != null) {
+            existingEvent.setDate(updateRequest.getDate());
+        }
+        if (updateRequest.getVenueId() != null) {
+            existingEvent.setVenueId(updateRequest.getVenueId());
+        }
+        if (updateRequest.getPerformerId() != null) {
+            existingEvent.setPerformerId(updateRequest.getPerformerId());
+        }
+        if (updateRequest.getTicketPrice() != null) {
+            existingEvent.setTicketPrice(updateRequest.getTicketPrice());
+        }
+        if (updateRequest.getStatus() != null) {
+            existingEvent.setStatus(updateRequest.getStatus());
+        }
+        if (updateRequest.getCategory() != null) {
+            existingEvent.setCategory(updateRequest.getCategory());
+        }
 
-        return eventRepository.save(oldEvent);
+        // Note: We intentionally do NOT update totalTickets or availableTickets
+        // to prevent accidental ticket count corruption after sales have started
+
+        return eventRepository.save(existingEvent);
     }
 
     /**
@@ -83,40 +129,27 @@ public class EventService {
      * @param id The ID of the event to remove.
      */
     public void deleteEvent(Long id) {
-        eventRepository.deleteById(id);
+        Event eventToDelete = getEventById(id);
+        eventRepository.delete(eventToDelete);
     }
-
 
     /**
-     * Processes a ticket purchase.
-     * <p>
-     * <b>Warning:</b> This method currently decreases the {@code totalTickets} count directly.
-     * This is a temporary logic placeholder.
-     * </p>
-     * <h3>Future Upgrade:</h3>
-     * When we implement the High-Performance engine, this method will be replaced to use:
-     * <ul>
-     * <li>{@code availableTickets} instead of {@code totalTickets}</li>
-     * <li>Optimistic Locking ({@code @Version}) checking</li>
-     * <li>Transaction Retries</li>
-     * </ul>
-     *
-     * @param eventId The ID of the event.
-     * @return A success message string.
-     * @throws RuntimeException If tickets are sold out.
+     * Retrieves all events with a specific status.
+     * @param status The status to filter by (e.g., UPCOMING, CANCELLED, COMPLETED).
+     * @return A list of events with the specified status.
      */
-    public String buyTicket(long eventId) {
-        Event event = getEventById(eventId);
-
-        if(event.getTotalTickets() > 0) {
-
-            // TODO: Switch this to event.setAvailableTickets(...) in the next feature branch
-            event.setTotalTickets(event.getTotalTickets() - 1);
-
-            eventRepository.save(event);
-            return "You Bought the Ticket for " + event.getName();
-        }else {
-             throw new RuntimeException("SOLD OUT: No tickets left for this event");
-        }
+    public List<Event> getEventsByStatus(Status status) {
+        return eventRepository.findEventByStatus(status);
     }
+
+    /**
+     * Retrieves all events with a specific category.
+     * @param category The category to filter by (e.g., UPCOMING, CANCELLED, COMPLETED).
+     * @return A list of events with the specified category.
+     */
+    public List<Event> getEventsByCategory(Category category) {
+        return eventRepository.findEventByCategory(category);
+    }
+
+
 }

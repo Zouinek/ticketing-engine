@@ -1,7 +1,11 @@
 package com.ticketmaster.event.repository;
 
 import com.ticketmaster.event.entity.Event;
+import com.ticketmaster.event.util.Category;
+import com.ticketmaster.event.util.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 /**
  * <h1>Event Repository</h1>
@@ -23,16 +27,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    /**
-     * PRO TIP: Custom Query Example
-     * <p>
-     * You don't need to write SQL! Spring derives the query from the method name.
-     * This method would find all events that are not sold out.
-     * </p>
-     *
-     * @param count The minimum number of tickets required (usually 0).
-     * @return A list of events with tickets still available.
-     */
-    // List<Event> findByAvailableTicketsGreaterThan(int count);
+    List<Event> findEventByStatus(Status status);
 
+    List<Event> findEventByCategory(Category category);
 }

@@ -1,6 +1,7 @@
 package com.ticketmaster.auth.dto.request;
 
 
+import com.ticketmaster.auth.util.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -60,5 +61,11 @@ public class RegisterRequest {
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
+
+
+    @Schema(description = "Role of the user (defaults to USER if not provided)", example = "USER", allowableValues = {"USER", "ADMIN"})
+    private Role role;
+
+
 
 }

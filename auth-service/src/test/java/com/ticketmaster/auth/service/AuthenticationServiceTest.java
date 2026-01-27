@@ -22,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,7 +54,7 @@ public class AuthenticationServiceTest {
                 .build();
 
         when(passwordEncoder.encode(request.getPassword())).thenReturn("encodedPassword");
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwtToken");
+        when(jwtService.generateToken(anyMap(), any(User.class))).thenReturn("jwtToken");
 
         // Act
         AuthenticationResponse response = authenticationService.register(request);
@@ -73,7 +73,7 @@ public class AuthenticationServiceTest {
         assertEquals("encodedPassword", saved.getPassword());
         assertEquals(Role.USER, saved.getRole());
 
-        verify(jwtService).generateToken(saved);
+        verify(jwtService).generateToken(anyMap(), eq(saved));
         verifyNoInteractions(authenticationManager);
     }
 
@@ -119,7 +119,7 @@ public class AuthenticationServiceTest {
                 .build();
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(user)).thenReturn("jwtToken");
+        when(jwtService.generateToken(anyMap(), any(User.class))).thenReturn("jwtToken");
 
         // Act
         AuthenticationResponse response = authenticationService.authenticate(request);
@@ -130,7 +130,7 @@ public class AuthenticationServiceTest {
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepository).findByEmail("example@email.com");
-        verify(jwtService).generateToken(user);
+        verify(jwtService).generateToken(anyMap(), eq(user));
 
         verify(userRepository, never()).save(any(User.class));
         verifyNoMoreInteractions(authenticationManager, userRepository, jwtService);
