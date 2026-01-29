@@ -23,6 +23,19 @@ services:
     volumes:
       - 'event_postgres_data:/var/lib/postgresql/data'
 
+  booking-db:
+    image: 'postgres:16'
+    container_name: 'booking_db'
+    environment:
+      - 'POSTGRES_DB=bookingdb'
+      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_USER=admin'
+    ports:
+      - '5433:5432'
+    volumes:
+      - 'booking_postgres_data:/var/lib/postgresql/data'
+
 volumes:
   auth_postgres_data:
   event_postgres_data:
+  booking_postgres_data:
