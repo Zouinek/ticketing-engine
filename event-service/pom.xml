@@ -14,6 +14,13 @@
     <version>0.0.1</version>
 
     <dependencies>
+        <!-- Shared Common Module -->
+        <dependency>
+            <groupId>com.ticketmaster</groupId>
+            <artifactId>ticketing-common</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- REST API -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

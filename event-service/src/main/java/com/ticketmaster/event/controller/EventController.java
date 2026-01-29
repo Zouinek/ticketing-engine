@@ -1,12 +1,12 @@
 package com.ticketmaster.event.controller;
 
 
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.service.EventService;
 import com.ticketmaster.event.entity.Event;
-import com.ticketmaster.event.util.Category;
-import com.ticketmaster.event.util.Status;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -68,13 +68,13 @@ public class EventController {
 
     @GetMapping("/status/{status}")
     @Operation(summary = "Get events by status", description = "Retrieves all events with a specific status (UPCOMING, CANCELLED, COMPLETED)")
-    public ResponseEntity<List<Event>> getEventsByStatus(@PathVariable Status status) {
+    public ResponseEntity<List<Event>> getEventsByStatus(@PathVariable EventStatus status) {
         return ResponseEntity.ok(eventService.getEventsByStatus(status));
     }
 
     @GetMapping("/category/{category}")
     @Operation(summary = "Get events by category", description = "Retrieves all events in a specific category (MUSIC, SPORTS, THEATER, COMEDY, CONFERENCE)")
-    public ResponseEntity<List<Event>> getEventsByCategory(@PathVariable Category category) {
+    public ResponseEntity<List<Event>> getEventsByCategory(@PathVariable EventCategory category) {
         return ResponseEntity.ok(eventService.getEventsByCategory(category));
     }
 

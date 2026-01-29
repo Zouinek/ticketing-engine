@@ -1,8 +1,10 @@
 package com.ticketmaster.event.repository;
 
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.entity.Event;
-import com.ticketmaster.event.util.Category;
-import com.ticketmaster.event.util.Status;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +44,8 @@ public class EventRepositoryTest {
                 .ticketPrice(100.0)
                 .totalTickets(500)
                 .availableTickets(500)
-                .status(Status.UPCOMING)
-                .category(Category.MUSIC)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.MUSIC)
                 .build();
 
         Event sportsEvent = Event.builder()
@@ -55,8 +57,8 @@ public class EventRepositoryTest {
                 .ticketPrice(75.0)
                 .totalTickets(1000)
                 .availableTickets(1000)
-                .status(Status.UPCOMING)
-                .category(Category.SPORTS)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.SPORTS)
                 .build();
 
         // Completed event with future date (to pass validation) but COMPLETED status
@@ -69,8 +71,8 @@ public class EventRepositoryTest {
                 .ticketPrice(50.0)
                 .totalTickets(200)
                 .availableTickets(0)
-                .status(Status.COMPLETED) // Status indicates it's completed
-                .category(Category.MUSIC)
+                .status(EventStatus.COMPLETED) // Status indicates it's completed
+                .category(EventCategory.MUSIC)
                 .build();
 
         // Save events
@@ -83,12 +85,12 @@ public class EventRepositoryTest {
     @Test
     void shouldFindEventsByStatus_UPCOMING() {
         // When
-        List<Event> upcomingEvents = eventRepository.findEventByStatus(Status.UPCOMING);
+        List<Event> upcomingEvents = eventRepository.findEventByStatus(EventStatus.UPCOMING);
 
         // Then
         assertThat(upcomingEvents).hasSize(2);
         assertThat(upcomingEvents).extracting(Event::getStatus)
-                .containsOnly(Status.UPCOMING);
+                .containsOnly(EventStatus.UPCOMING);
         assertThat(upcomingEvents).extracting(Event::getName)
                 .contains("Rock Concert", "Football Match");
     }
@@ -96,18 +98,18 @@ public class EventRepositoryTest {
     @Test
     void shouldFindEventsByStatus_COMPLETED() {
         // When
-        List<Event> completedEvents = eventRepository.findEventByStatus(Status.COMPLETED);
+        List<Event> completedEvents = eventRepository.findEventByStatus(EventStatus.COMPLETED);
 
         // Then
         assertThat(completedEvents).hasSize(1);
         assertThat(completedEvents.get(0).getName()).isEqualTo("Past Concert");
-        assertThat(completedEvents.get(0).getStatus()).isEqualTo(Status.COMPLETED);
+        assertThat(completedEvents.get(0).getStatus()).isEqualTo(EventStatus.COMPLETED);
     }
 
     @Test
     void shouldReturnEmptyList_WhenNoEventsMatchStatus() {
         // When
-        List<Event> cancelledEvents = eventRepository.findEventByStatus(Status.CANCELLED);
+        List<Event> cancelledEvents = eventRepository.findEventByStatus(EventStatus.CANCELLED);
 
         // Then
         assertThat(cancelledEvents).isEmpty();
@@ -116,12 +118,12 @@ public class EventRepositoryTest {
     @Test
     void shouldFindEventsByCategory_MUSIC() {
         // When
-        List<Event> musicEvents = eventRepository.findEventByCategory(Category.MUSIC);
+        List<Event> musicEvents = eventRepository.findEventByCategory(EventCategory.MUSIC);
 
         // Then
         assertThat(musicEvents).hasSize(2);
         assertThat(musicEvents).extracting(Event::getCategory)
-                .containsOnly(Category.MUSIC);
+                .containsOnly(EventCategory.MUSIC);
         assertThat(musicEvents).extracting(Event::getName)
                 .contains("Rock Concert", "Past Concert");
     }
@@ -129,18 +131,18 @@ public class EventRepositoryTest {
     @Test
     void shouldFindEventsByCategory_SPORTS() {
         // When
-        List<Event> sportsEvents = eventRepository.findEventByCategory(Category.SPORTS);
+        List<Event> sportsEvents = eventRepository.findEventByCategory(EventCategory.SPORTS);
 
         // Then
         assertThat(sportsEvents).hasSize(1);
         assertThat(sportsEvents.get(0).getName()).isEqualTo("Football Match");
-        assertThat(sportsEvents.get(0).getCategory()).isEqualTo(Category.SPORTS);
+        assertThat(sportsEvents.get(0).getCategory()).isEqualTo(EventCategory.SPORTS);
     }
 
     @Test
     void shouldReturnEmptyList_WhenNoEventsMatchCategory() {
         // When
-        List<Event> theaterEvents = eventRepository.findEventByCategory(Category.THEATER);
+        List<Event> theaterEvents = eventRepository.findEventByCategory(EventCategory.THEATER);
 
         // Then
         assertThat(theaterEvents).isEmpty();
@@ -158,8 +160,8 @@ public class EventRepositoryTest {
                 .ticketPrice(30.0)
                 .totalTickets(300)
                 .availableTickets(300)
-                .status(Status.UPCOMING)
-                .category(Category.COMEDY)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.COMEDY)
                 .build();
 
         // When

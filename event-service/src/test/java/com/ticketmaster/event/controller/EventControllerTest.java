@@ -2,14 +2,14 @@ package com.ticketmaster.event.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.entity.Event;
 import com.ticketmaster.event.exception.EventNotFoundException;
 import com.ticketmaster.event.service.EventService;
 
-import com.ticketmaster.event.util.Category;
-import com.ticketmaster.event.util.Status;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -119,8 +119,8 @@ public class EventControllerTest {
                 2L,
                 100.0,
                 500,
-                Status.UPCOMING,
-                Category.MUSIC
+                EventStatus.UPCOMING,
+                EventCategory.MUSIC
         );
         when(eventService.createEvent(eventRequest)).thenReturn(
                 Event.builder()
@@ -156,8 +156,8 @@ public class EventControllerTest {
                 2L,
                 -100.0, // Negative ticket price
                 0, // Zero total tickets
-                Status.UPCOMING,
-                Category.MUSIC
+                EventStatus.UPCOMING,
+                EventCategory.MUSIC
         );
 
         mockMvc.perform(post("/api/v1/events")
@@ -182,8 +182,8 @@ public class EventControllerTest {
                 .ticketPrice(300.0)  // Updated price
                 .totalTickets(500)
                 .availableTickets(500)
-                .status(Status.UPCOMING)
-                .category(Category.MUSIC)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.MUSIC)
                 .build();
 
         when(eventService.updateEvent(eventId, updateRequest)).thenReturn(updatedEvent);
@@ -232,9 +232,9 @@ public class EventControllerTest {
 
     @Test
     void getEventsByStatus_ShouldReturnFilteredEvents() throws Exception {
-        when(eventService.getEventsByStatus(Status.UPCOMING)).thenReturn(List.of(
-                Event.builder().id(1L).name("Concert A").status(Status.UPCOMING).build(),
-                Event.builder().id(2L).name("Concert B").status(Status.UPCOMING).build()
+        when(eventService.getEventsByStatus(EventStatus.UPCOMING)).thenReturn(List.of(
+                Event.builder().id(1L).name("Concert A").status(EventStatus.UPCOMING).build(),
+                Event.builder().id(2L).name("Concert B").status(EventStatus.UPCOMING).build()
         ));
 
         mockMvc.perform(get("/api/v1/events/status/{status}", "UPCOMING"))
@@ -245,9 +245,9 @@ public class EventControllerTest {
 
     @Test
     void getEventsByCategory_ShouldReturnFilteredEvents() throws Exception {
-        when(eventService.getEventsByCategory(Category.MUSIC)).thenReturn(List.of(
-                Event.builder().id(1L).name("Concert A").category(Category.MUSIC).build(),
-                Event.builder().id(3L).name("Concert C").category(Category.MUSIC).build()
+        when(eventService.getEventsByCategory(EventCategory.MUSIC)).thenReturn(List.of(
+                Event.builder().id(1L).name("Concert A").category(EventCategory.MUSIC).build(),
+                Event.builder().id(3L).name("Concert C").category(EventCategory.MUSIC).build()
         ));
 
         mockMvc.perform(get("/api/v1/events/category/{category}", "MUSIC"))

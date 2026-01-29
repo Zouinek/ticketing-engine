@@ -1,13 +1,12 @@
 package com.ticketmaster.event.service;
 
-
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.entity.Event;
 import com.ticketmaster.event.exception.EventNotFoundException;
 import com.ticketmaster.event.repository.EventRepository;
-import com.ticketmaster.event.util.Category;
-import com.ticketmaster.event.util.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,8 +84,8 @@ public class EventServiceTest {
                 2L,
                 100.0,
                 500,
-                Status.UPCOMING,
-                Category.MUSIC
+                EventStatus.UPCOMING,
+                EventCategory.MUSIC
         );
 
         Event savedEvent = Event.builder()
@@ -99,8 +98,8 @@ public class EventServiceTest {
                 .ticketPrice(100.0)
                 .totalTickets(500)
                 .availableTickets(500)
-                .status(Status.UPCOMING)
-                .category(Category.MUSIC)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.MUSIC)
                 .build();
 
         when(eventRepository.save(any(Event.class))).thenReturn(savedEvent);
@@ -119,7 +118,7 @@ public class EventServiceTest {
     @Test
     void shouldReturnEventsByStatus() {
 
-        Status status = Status.UPCOMING;
+        EventStatus status = EventStatus.UPCOMING;
         when(eventRepository.findEventByStatus(status)).thenReturn(List.of(
                 Event.builder().id(1L).name("Concert A").status(status).build(),
                 Event.builder().id(3L).name("Concert C").status(status).build()
@@ -129,14 +128,14 @@ public class EventServiceTest {
         List<Event> events = eventService.getEventsByStatus(status);
 
         assert (events.size() == 2);
-        assert (events.get(0).getStatus() == Status.UPCOMING);
-        assert (events.get(1).getStatus() == Status.UPCOMING);
+        assert (events.get(0).getStatus() == EventStatus.UPCOMING);
+        assert (events.get(1).getStatus() == EventStatus.UPCOMING);
     }
 
     @Test
     void shouldReturnEventsByCategory() {
 
-        Category category = Category.MUSIC;
+        EventCategory category = EventCategory.MUSIC;
         when(eventRepository.findEventByCategory(category)).thenReturn(List.of(
                 Event.builder().id(1L).name("Concert A").category(category).build(),
                 Event.builder().id(4L).name("Concert D").category(category).build()
@@ -145,8 +144,8 @@ public class EventServiceTest {
         List<Event> events = eventService.getEventsByCategory(category);
 
         assert (events.size() == 2);
-        assert (events.get(0).getCategory() == Category.MUSIC);
-        assert (events.get(1).getCategory() == Category.MUSIC);
+        assert (events.get(0).getCategory() == EventCategory.MUSIC);
+        assert (events.get(1).getCategory() == EventCategory.MUSIC);
     }
 
     @Test
@@ -163,8 +162,8 @@ public class EventServiceTest {
                 .ticketPrice(100.0)
                 .totalTickets(500)
                 .availableTickets(500)
-                .status(Status.UPCOMING)
-                .category(Category.MUSIC)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.MUSIC)
                 .build();
 
         // Create update request - only updating ticket price
@@ -182,8 +181,8 @@ public class EventServiceTest {
                 .ticketPrice(300.0)  // Updated price
                 .totalTickets(500)
                 .availableTickets(500)
-                .status(Status.UPCOMING)
-                .category(Category.MUSIC)
+                .status(EventStatus.UPCOMING)
+                .category(EventCategory.MUSIC)
                 .build();
 
         // Mock the getEventById call (used internally by updateEvent)
