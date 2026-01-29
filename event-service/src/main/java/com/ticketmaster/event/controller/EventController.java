@@ -1,6 +1,8 @@
 package com.ticketmaster.event.controller;
 
 
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.service.EventService;
@@ -62,6 +64,18 @@ public class EventController {
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/status/{status}")
+    @Operation(summary = "Get events by status", description = "Retrieves all events with a specific status (UPCOMING, CANCELLED, COMPLETED)")
+    public ResponseEntity<List<Event>> getEventsByStatus(@PathVariable EventStatus status) {
+        return ResponseEntity.ok(eventService.getEventsByStatus(status));
+    }
+
+    @GetMapping("/category/{category}")
+    @Operation(summary = "Get events by category", description = "Retrieves all events in a specific category (MUSIC, SPORTS, THEATER, COMEDY, CONFERENCE)")
+    public ResponseEntity<List<Event>> getEventsByCategory(@PathVariable EventCategory category) {
+        return ResponseEntity.ok(eventService.getEventsByCategory(category));
     }
 
 

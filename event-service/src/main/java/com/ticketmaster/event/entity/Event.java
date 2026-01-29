@@ -1,7 +1,7 @@
 package com.ticketmaster.event.entity;
 
-import com.ticketmaster.event.util.Category;
-import com.ticketmaster.event.util.Status;
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -118,13 +118,13 @@ public class Event {
     @Schema(description = "Status of the event", example = "SCHEDULED", allowableValues = {"SCHEDULED", "UPCOMING", "CANCELLED", "COMPLETED"})
     @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private EventStatus status;
 
 
     @Schema(description = "Category of the event", example = "MUSIC")
     @NotNull(message = "Category is required")
     @Enumerated(EnumType.STRING)
-    private Category category;
+    private EventCategory category;
 
     /**
      * Timestamp when this event was first created in the database.

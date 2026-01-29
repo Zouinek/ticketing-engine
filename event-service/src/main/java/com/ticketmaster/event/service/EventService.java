@@ -1,6 +1,8 @@
 package com.ticketmaster.event.service;
 
 
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.dto.request.EventUpdateRequest;
 import com.ticketmaster.event.entity.Event;
@@ -129,6 +131,24 @@ public class EventService {
     public void deleteEvent(Long id) {
         Event eventToDelete = getEventById(id);
         eventRepository.delete(eventToDelete);
+    }
+
+    /**
+     * Retrieves all events with a specific status.
+     * @param status The status to filter by (e.g., UPCOMING, CANCELLED, COMPLETED).
+     * @return A list of events with the specified status.
+     */
+    public List<Event> getEventsByStatus(EventStatus status) {
+        return eventRepository.findEventByStatus(status);
+    }
+
+    /**
+     * Retrieves all events with a specific category.
+     * @param category The category to filter by (e.g., UPCOMING, CANCELLED, COMPLETED).
+     * @return A list of events with the specified category.
+     */
+    public List<Event> getEventsByCategory(EventCategory category) {
+        return eventRepository.findEventByCategory(category);
     }
 
 

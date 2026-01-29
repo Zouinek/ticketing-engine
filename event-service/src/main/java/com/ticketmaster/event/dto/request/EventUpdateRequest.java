@@ -1,8 +1,8 @@
 package com.ticketmaster.event.dto.request;
 
 
-import com.ticketmaster.event.util.Category;
-import com.ticketmaster.event.util.Status;
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -49,8 +49,8 @@ public class EventUpdateRequest {
     private Double ticketPrice;
 
     @Schema(description = "Status of the event", example = "SCHEDULED", allowableValues = {"SCHEDULED", "UPCOMING", "CANCELLED", "COMPLETED"})
-    private Status status;
+    private EventStatus status;
 
     @Schema(description = "Category of the event", example = "MUSIC", allowableValues = {"MUSIC", "SPORTS", "THEATER", "COMEDY", "CONFERENCE"})
-    private Category category;
+    private EventCategory category;
 }

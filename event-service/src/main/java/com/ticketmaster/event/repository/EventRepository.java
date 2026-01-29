@@ -1,7 +1,8 @@
 package com.ticketmaster.event.repository;
 
+import com.ticketmaster.common.enums.EventCategory;
+import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.entity.Event;
-import com.ticketmaster.event.util.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.List;
  */
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    List<Event> findEventByStatus(Status status);
+    List<Event> findEventByStatus(EventStatus status);
 
-    List<Event> findEventByCategory(Status Catergory);
+    List<Event> findEventByCategory(EventCategory category);
 }
