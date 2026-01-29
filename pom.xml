@@ -10,6 +10,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>ticketing-common</module>
 		<module>auth-service</module>
 		<module>notification-service</module>
 		<module>event-service</module>
