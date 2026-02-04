@@ -14,8 +14,7 @@
 		<module>auth-service</module>
 		<module>notification-service</module>
 		<module>event-service</module>
-		<!-- booking-service module temporarily removed (folder not present in repo) -->
-		<!-- <module>booking-service</module> -->
+		<module>booking-service</module>
 	</modules>
 
 	<properties>

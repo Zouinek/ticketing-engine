@@ -5,8 +5,10 @@ import com.ticketmaster.common.enums.EventCategory;
 import com.ticketmaster.common.enums.EventStatus;
 import com.ticketmaster.event.dto.request.EventRequest;
 import com.ticketmaster.event.dto.request.EventUpdateRequest;
-import com.ticketmaster.event.service.EventService;
 import com.ticketmaster.event.entity.Event;
+
+import com.ticketmaster.event.service.EventService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

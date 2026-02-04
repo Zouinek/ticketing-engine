@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.ticketmaster.common.grpc";
+option java_outer_classname = "EventServiceProto";
+
+package event;
+
+// Event Service - handles event information and ticket reservation
+service EventService {
+  // Get event details by ID
+  rpc GetEvent (GetEventRequest) returns (GetEventResponse);
+
+  // Reserve tickets for an event
+  rpc ReserveTickets (ReserveTicketsRequest) returns (ReserveTicketsResponse);
+}
+
+// Request to get event details
+message GetEventRequest {
+  int64 eventId = 1;
+}
+
+// Response with event details
+message GetEventResponse {
+  int64 eventId = 1;
+  string name = 2;
+  EventStatus status = 3;
+  int32 availableTickets = 4;
+  double ticketPrice = 5;
+  int32 totalTickets = 6;
+}
+
+// Request to reserve tickets
+message ReserveTicketsRequest {
+  int64 eventId = 1;
+  int32 quantity = 2;
+}
+
+// Response for ticket reservation
+message ReserveTicketsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 remainingTickets = 3;
+}
+
+// Event status enum
+enum EventStatus {
+  EVENT_STATUS_UNSPECIFIED = 0;
+  SCHEDULED = 1;
+  UPCOMING = 2;
+  COMPLETED = 3;
+  CANCELLED = 4;
+}
