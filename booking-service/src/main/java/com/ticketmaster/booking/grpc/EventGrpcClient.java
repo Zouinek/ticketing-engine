@@ -97,4 +97,33 @@ public class EventGrpcClient {
             return false;
         }
     }
+
+    /**
+     * Release tickets back to available pool
+     * Called when bookings expire or are cancelled
+     * @param eventId The ID of the event
+     * @param quantity Number of tickets to release
+     * @return Release response
+     * @throws StatusRuntimeException if the release fails
+     */
+    public ReleaseTicketsResponse releaseTickets(Long eventId, int quantity) {
+        log.info("gRPC Client: Requesting to release {} tickets for eventId: {}", quantity, eventId);
+
+        try {
+            ReleaseTicketsRequest request = ReleaseTicketsRequest.newBuilder()
+                    .setEventId(eventId)
+                    .setQuantity(quantity)
+                    .build();
+
+            ReleaseTicketsResponse response = eventServiceStub.releaseTickets(request);
+            log.info("gRPC Client: Release response - success: {}, message: {}, remaining: {}",
+                    response.getSuccess(), response.getMessage(), response.getRemainingTickets());
+            return response;
+
+        } catch (StatusRuntimeException e) {
+            log.error("gRPC Client: Failed to release tickets for event {}: {} - {}",
+                    eventId, e.getStatus(), e.getMessage());
+            throw e;
+        }
+    }
 }

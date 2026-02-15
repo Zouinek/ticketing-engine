@@ -1,40 +1,36 @@
 package com.ticketmaster.booking.scheduler;
 
 
-import com.ticketmaster.booking.entity.Booking;
-import com.ticketmaster.booking.repository.BookingRepository;
-import com.ticketmaster.common.enums.BookingStatus;
-import jakarta.transaction.Transactional;
+import com.ticketmaster.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+/**
+ * Scheduler to automatically release expired bookings
+ * Runs every minute to check for PENDING bookings that have passed their expiration time
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class BookingExpirationScheduler {
 
-    private final BookingRepository bookingRepository;
-    @Transactional
+    private final BookingService bookingService;
+
+    /**
+     * Release expired bookings every 1 minute
+     * This ensures tickets are returned to inventory if payment isn't completed
+     */
     @Scheduled(fixedRate = 60000) // Runs every 60 seconds
     public void expirePendingBookings() {
-
-        LocalDateTime now = LocalDateTime.now();
-
-        List<Booking> expiredBookings = bookingRepository.findByBookingStatusAndExpiresAtBefore(BookingStatus.PENDING, now);
-        for (Booking booking : expiredBookings) {
-            booking.setBookingStatus(BookingStatus.EXPIRED);
-            booking.setCancellationReason("Booking expired - Payment not completed");
-            booking.setCancellationDate(now);
-            bookingRepository.save(booking);
+        log.info("Starting scheduled task: Release expired bookings");
+        try {
+            bookingService.releaseExpiredBookings();
+            log.info("Completed scheduled task: Release expired bookings");
+        } catch (Exception e) {
+            log.error("Error during scheduled task: {}", e.getMessage(), e);
         }
-
-        log.info("Expired {} pending bookings", expiredBookings.size());
     }
-
 
 }
