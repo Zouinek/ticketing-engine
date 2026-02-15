@@ -13,6 +13,9 @@ service EventService {
 
   // Reserve tickets for an event
   rpc ReserveTickets (ReserveTicketsRequest) returns (ReserveTicketsResponse);
+
+  // Release tickets back to available pool (for expired/cancelled bookings)
+  rpc ReleaseTickets (ReleaseTicketsRequest) returns (ReleaseTicketsResponse);
 }
 
 // Request to get event details
@@ -38,6 +41,19 @@ message ReserveTicketsRequest {
 
 // Response for ticket reservation
 message ReserveTicketsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 remainingTickets = 3;
+}
+
+// Request to release tickets back to pool
+message ReleaseTicketsRequest {
+  int64 eventId = 1;
+  int32 quantity = 2;
+}
+
+// Response for ticket release
+message ReleaseTicketsResponse {
   bool success = 1;
   string message = 2;
   int32 remainingTickets = 3;
