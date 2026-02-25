@@ -47,12 +47,6 @@ public class Booking {
     @Positive(message = "User ID must be positive")
     private Long userId;
 
-
-    @Schema(description = "ID of the Seat booked (if applicable)", example = "100")
-    @NotNull(message = "Seat ID is required")
-    @Positive(message = "Seat ID must be positive")
-    private Long seatId;
-
     @Schema(description = "Payment transaction ID from payment service", example = "PAY123456789")
     @Column(length = 100)
     private String paymentId;

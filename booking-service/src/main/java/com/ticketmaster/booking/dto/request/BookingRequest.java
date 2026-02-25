@@ -21,9 +21,6 @@ public class BookingRequest {
     @Positive(message = "User ID must be positive")
     private Long userId;
 
-    @NotNull(message = "Seat ID is required")
-    @Positive(message = "Seat ID must be positive")
-    private Long seatId;
 
     @NotNull(message = "Quantity is required")
     @Min(value = 1, message = "Quantity must be at least 1")

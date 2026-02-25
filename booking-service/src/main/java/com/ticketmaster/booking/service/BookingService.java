@@ -14,7 +14,7 @@ import com.ticketmaster.common.grpc.ReserveTicketsResponse;
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,26 +34,9 @@ public class BookingService {
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final long RETRY_DELAY_MS = 100;
 
-    public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
-    }
+    @Value("${booking.expiration.minutes:15}")
+    private int bookingExpirationMinutes;
 
-    public Booking getBookingById(Long id) {
-        return bookingRepository.findById(id)
-                .orElseThrow(() -> new BookingNotFoundException(id));
-    }
-
-    public List<Booking> getBookingByBookingStatus(BookingStatus status) {
-        return bookingRepository.findByBookingStatus(status);
-    }
-
-    public List<Booking> getBookingsByUserId(Long userId) {
-        return bookingRepository.findByUserId(userId);
-    }
-
-    public List<Booking> getBookingsByEventId(Long eventId) {
-        return bookingRepository.findByEventId(eventId);
-    }
 
     /**
      * Create a new booking with optimistic locking retry logic
@@ -64,14 +47,11 @@ public class BookingService {
         log.info("Creating booking for user: {}, event: {}, seats: {}",
                 bookingRequest.getUserId(), bookingRequest.getEventId(), bookingRequest.getQuantity());
 
-        // Step 1: Get event details to calculate price
         GetEventResponse event = getEventWithRetry(bookingRequest.getEventId());
 
-        // Step 2: Calculate total price
         BigDecimal totalPrice = BigDecimal.valueOf(event.getTicketPrice())
                 .multiply(BigDecimal.valueOf(bookingRequest.getQuantity()));
 
-        // Step 3: Reserve tickets with retry logic for optimistic locking
         ReserveTicketsResponse reservationResponse = reserveTicketsWithRetry(
                 bookingRequest.getEventId(),
                 bookingRequest.getQuantity()
@@ -81,17 +61,15 @@ public class BookingService {
             throw new SeatNotAvailableException(reservationResponse.getMessage());
         }
 
-        // Step 4: Create booking entity
         Booking booking = Booking.builder()
                 .userId(bookingRequest.getUserId())
                 .eventId(bookingRequest.getEventId())
-                .seatId(bookingRequest.getSeatId())
                 .numberOfTickets(bookingRequest.getQuantity())
                 .totalPrice(totalPrice)
                 .bookingStatus(BookingStatus.PENDING)
                 .bookingDate(LocalDateTime.now())
                 .bookingReference(generateBookingReference())
-                .expiresAt(LocalDateTime.now().plusMinutes(10)) // 10 min to pay
+                .expiresAt(LocalDateTime.now().plusMinutes(bookingExpirationMinutes))
                 .build();
 
         Booking savedBooking = bookingRepository.save(booking);
@@ -108,7 +86,7 @@ public class BookingService {
     public Booking confirmBooking(Long bookingId, String paymentId) {
         log.info("Confirming booking: {}, paymentId: {}", bookingId, paymentId);
 
-        Booking booking = getBookingById(bookingId);
+        Booking booking = bookingRepository.getBookingById(bookingId);
 
         // Validate booking can be confirmed
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
@@ -142,20 +120,16 @@ public class BookingService {
     public Booking cancelBooking(Long bookingId, String reason) {
         log.info("Cancelling booking: {}, reason: {}", bookingId, reason);
 
-        Booking booking = getBookingById(bookingId);
+        Booking booking = bookingRepository.getBookingById(bookingId);
 
         // Validate booking can be cancelled
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
             throw new BookingAlreadyCancelledException("Booking is already cancelled");
         }
 
-        // Release tickets back to event
-        try {
-            eventGrpcClient.releaseTickets(booking.getEventId(), booking.getNumberOfTickets());
-        } catch (StatusRuntimeException e) {
-            log.error("Failed to release tickets for booking {}: {}", bookingId, e.getMessage());
-            // Continue with cancellation even if release fails
-        }
+        // NOTE:
+        // Ticket release MUST be implemented in event-service as a dedicated RPC (e.g. ReleaseTickets)
+        // and added to ticketing-common proto. Until then, we only update booking state here.
 
         // Update booking
         booking.setBookingStatus(BookingStatus.CANCELLED);
@@ -187,17 +161,18 @@ public class BookingService {
 
         for (Booking booking : expiredBookings) {
             try {
-                // Release tickets back to event
-                eventGrpcClient.releaseTickets(booking.getEventId(), booking.getNumberOfTickets());
+                // NOTE:
+                // Ticket release MUST be implemented in event-service as a dedicated RPC (e.g. ReleaseTickets)
+                // and added to ticketing-common proto. Until then, we only update booking state here.
 
                 // Update booking status
                 booking.setBookingStatus(BookingStatus.EXPIRED);
                 bookingRepository.save(booking);
 
-                log.info("Released expired booking: {}", booking.getBookingReference());
+                log.info("Marked expired booking as EXPIRED: {}", booking.getBookingReference());
 
             } catch (Exception e) {
-                log.error("Failed to release expired booking {}: {}",
+                log.error("Failed to update expired booking {}: {}",
                         booking.getBookingReference(), e.getMessage());
             }
         }
@@ -291,5 +266,46 @@ public class BookingService {
             Thread.currentThread().interrupt();
             log.warn("Sleep interrupted", e);
         }
+    }
+
+    /**
+     * Get a booking by its ID
+     */
+    @Transactional(readOnly = true)
+    public Booking getBookingById(Long bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found with id: " + bookingId));
+    }
+
+    /**
+     * Get all bookings for a user
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getBookingsByUserId(Long userId) {
+        return bookingRepository.findByUserId(userId);
+    }
+
+    /**
+     * Get all bookings for an event
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getBookingsByEventId(Long eventId) {
+        return bookingRepository.findByEventId(eventId);
+    }
+
+    /**
+     * Get all bookings with a specific status
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getBookingByBookingStatus(BookingStatus status) {
+        return bookingRepository.findByBookingStatus(status);
+    }
+
+    /**
+     * Get all bookings
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
     }
 }
