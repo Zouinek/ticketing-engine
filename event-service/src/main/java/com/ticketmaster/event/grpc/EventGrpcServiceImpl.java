@@ -119,6 +119,55 @@ public class EventGrpcServiceImpl extends EventServiceGrpc.EventServiceImplBase 
     }
 
     /**
+     * Release tickets back to available pool
+     * Used when bookings expire or are cancelled
+     */
+    @Override
+    @Transactional
+    public void releaseTickets(ReleaseTicketsRequest request, StreamObserver<ReleaseTicketsResponse> responseObserver) {
+        log.info("gRPC: Received ReleaseTickets request for eventId: {}, quantity: {}",
+                request.getEventId(), request.getQuantity());
+
+        try {
+            Event event = eventRepository.findById(request.getEventId())
+                    .orElseThrow(() -> new EventNotFoundException("Event not found with ID: " + request.getEventId()));
+
+            // Release tickets back to available pool
+            event.setAvailableTickets(event.getAvailableTickets() + request.getQuantity());
+
+            // Make sure we don't exceed total tickets
+            if (event.getAvailableTickets() > event.getTotalTickets()) {
+                event.setAvailableTickets(event.getTotalTickets());
+                log.warn("gRPC: Adjusted available tickets to total tickets for eventId: {}", request.getEventId());
+            }
+
+            eventRepository.save(event);
+
+            ReleaseTicketsResponse response = ReleaseTicketsResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Tickets released successfully")
+                    .setRemainingTickets(event.getAvailableTickets())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+            log.info("gRPC: Successfully released {} tickets for eventId: {}", request.getQuantity(), request.getEventId());
+
+        } catch (EventNotFoundException e) {
+            log.error("gRPC: Event not found: {}", e.getMessage());
+            responseObserver.onError(Status.NOT_FOUND
+                    .withDescription(e.getMessage())
+                    .asRuntimeException());
+
+        } catch (Exception e) {
+            log.error("gRPC: Error releasing tickets: {}", e.getMessage(), e);
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription("Internal server error: " + e.getMessage())
+                    .asRuntimeException());
+        }
+    }
+
+    /**
      * Map JPA Status enum to gRPC EventStatus enum
      */
     private com.ticketmaster.common.grpc.EventStatus mapToGrpcStatus(com.ticketmaster.common.enums.EventStatus jpaStatus) {
