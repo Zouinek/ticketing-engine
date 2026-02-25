@@ -1,149 +1,184 @@
-# High-Performance Event Ticketing Engine
+# Ticketing Engine (Microservices playground)
 
-![Java](https://img.shields.io/badge/Java-17-007396?style=for-the-badge)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.x-6DB33F?style=for-the-badge)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge)
-![Purpose](https://img.shields.io/badge/Purpose-Educational-555?style=for-the-badge)
-![Security](https://img.shields.io/badge/Security-JWT-EF4444?style=for-the-badge)
+A small **microservices-style ticketing platform** built to practice real-world backend engineering: service boundaries, data ownership, concurrency, testing, and inter-service communication.
 
-A **microservices-style event ticketing platform** built with **Java 17 + Spring Boot 3**. The goal is to practice real-world backend design: **clear service boundaries**, **independent deployability**, and a **database per service**.
+- Language/runtime: **Java 17**
+- Framework: **Spring Boot 3.2.x**
+- Build: **Maven multi-module**
+- Databases: **PostgreSQL (Docker Compose)**
+- Auth: **Spring Security + JWT**
+- Service-to-service: **gRPC** (contracts in `ticketing-common`)
 
-This repository is a **Maven multi-module** project where each module is a separate Spring Boot application.
-
----
-
-## Architecture (at a glance)
-- **Microservices**: each service is deployed and scaled independently.
-- **Database-per-service**: each service owns its schema and persists its own data.
-- **No shared JPA entities across services**: shared contracts should be APIs/events, not shared persistence models.
+> Status: I’m pausing development during the semester and plan to continue in the summer.
 
 ---
 
-## Services
+## Modules / services
+This repository is a **single Maven multi-module** project. Each service is a separate Spring Boot app.
 
-### Current
-- **auth-service** – user registration/login, JWT authentication & authorization
-- **event-service** – event catalog (CRUD) *(WIP)*
-- **notification-service** – notifications foundation *(WIP)*
+- `ticketing-common`  
+  Shared **contracts** (DTOs/enums) + **gRPC protobuf** definitions & generated stubs.
 
-### Planned
-- **api-gateway** – single entry point (routing, auth enforcement, rate limiting)
-- **booking-service** – reservation workflow, seat/ticket locking, concurrency handling
-- **payment-service** – Stripe integration (payment intents + webhooks)
-- **search-service** – hybrid search (keyword + semantic/vector search)
+- `auth-service`  
+  Registration/login + JWT issuing. Provides user identity and roles.
 
----
+- `event-service`  
+  Event catalog (CRUD) + exposes gRPC APIs used by booking (ex: reserve tickets).
 
-## Tech stack
-- Java 17
-- Spring Boot 3.2.x
-- Spring Security + JWT
-- Spring Data JPA + Hibernate
-- PostgreSQL 16 (Docker)
-- Maven multi-module
+- `booking-service`  
+  Booking workflow + expiration window for pending reservations. Uses **optimistic locking** and calls `event-service` over **gRPC** for validation/reservation.
+
+- `notification-service`  
+  Currently **empty** (placeholder module). Planned for async notifications in the summer roadmap.
 
 ---
 
-## Repository structure
-```
-./
-  pom.xml              # parent POM
-  compose.yaml         # local infra (PostgreSQL containers)
-  auth-service/
-  event-service/
-  notification-service/
-```
+## Local infrastructure
+`compose.yaml` starts **one Postgres container per service**:
 
----
+- auth DB: `localhost:5432` → `authdb`
+- booking DB: `localhost:5433` → `bookingdb`
+- event DB: `localhost:5434` → `eventdb`
 
-## Getting started (local)
-
-### 1) Start the infrastructure
-```bash
-docker compose up -d
-```
-
-### 2) Run a service
-```bash
-./mvnw -pl auth-service spring-boot:run
-```
-
-```bash
-./mvnw -pl event-service spring-boot:run
-```
-
-### 3) Build everything
-```bash
-./mvnw clean verify
-```
-
-### ⚠️ Important: Database Migration Notice
-If you previously ran `event-service` and encounter schema errors about `category` or `status` columns, you need to drop the events table:
-
-**Windows/PowerShell:**
-```powershell
-docker exec -it event_db psql -U admin -d eventdb -c "DROP TABLE IF EXISTS events CASCADE;"
-```
-
-**Mac/Linux:**
-```bash
-docker exec -it event_db psql -U admin -d eventdb -c "DROP TABLE IF EXISTS events CASCADE;"
-```
-
-**Or reset all databases:**
-```bash
-docker-compose down -v
-docker-compose up -d
-```
-
-This is needed because enum storage changed from `ORDINAL` (integer) to `STRING` (varchar). Hibernate will recreate the table with the correct schema.
-
----
-
-## Databases
-Defined in `compose.yaml` (database-per-service).
-
-Typical local mapping:
-- `auth-db`  → `localhost:5432`, database `authdb`
-- `event-db` → `localhost:5433`, database `eventdb`
-
-Default credentials:
+Default credentials (local dev only):
 - user: `admin`
 - password: `password`
 
 ---
 
-## API (auth-service)
-- Swagger UI (if enabled): http://localhost:8080/swagger-ui/index.html
-- Health/Status: `GET /api/v1/system/status`
-- Auth:
-  - `POST /api/v1/auth/register`
-  - `POST /api/v1/auth/authenticate`
+## Run locally (Windows PowerShell)
+
+### 1) Start databases
+```powershell
+cd C:\Users\aymen\Desktop\ticketing-engine
+docker compose up -d
+```
+
+### 2) Provide environment variables (secrets)
+This repo intentionally reads secrets from env vars.
+
+Set these in your terminal session (or in your OS env settings):
+- `JWT_SECRET` (required for auth/event/booking)
+- `OPENAI_API_KEY` (only used if you experiment with Spring AI in auth-service)
+
+Example (PowerShell session only):
+```powershell
+$env:JWT_SECRET = "change-me"
+# optional
+$env:OPENAI_API_KEY = "your-key"
+```
+
+### 3) Run services
+Run each service from the parent folder:
+
+```powershell
+.\mvnw -pl auth-service spring-boot:run
+```
+
+```powershell
+.\mvnw -pl event-service spring-boot:run
+```
+
+```powershell
+.\mvnw -pl booking-service spring-boot:run
+```
+
+> `event-service` also exposes a gRPC server. See `event-service/src/main/resources/application.properties` (default port `9090`).
+
+### 4) Run tests
+```powershell
+.\mvnw clean test
+```
+
+---
+
+## API quick links (dev)
+When services are running:
+- event swagger (if enabled): `http://localhost:8082/swagger-ui/index.html`
+- booking swagger (if enabled): `http://localhost:8083/swagger-ui/index.html`
 
 JWT header:
-- `Authorization: Bearer <JWT>`
+- `Authorization: Bearer <token>`
 
 ---
 
-## Roadmap
-- [ ] API Gateway (Spring Cloud Gateway)
-- [ ] Booking Service (reservations + concurrency)
-- [ ] Payment Service (Stripe payment intents + webhooks)
-- [ ] Search Service (keyword + semantic search)
-- [ ] Async messaging for notifications (Kafka/RabbitMQ)
-- [ ] Observability (Micrometer + OpenTelemetry)
-- [ ] Tests (unit + integration)
+## Notes / gotchas
+
+### Hibernate enum storage changes
+If you previously ran `event-service` and changed enum mapping (ORDINAL ⇄ STRING), Postgres schema can get stuck.
+
+For a clean reset (drops data):
+```powershell
+docker compose down -v
+docker compose up -d
+```
+
+### Don’t commit secrets
+- JWT values are loaded from `JWT_SECRET` env var.
+- Keep secrets out of `application.properties`.
 
 ---
 
-## OpenAI / LLM usage (planned)
-Primary target is the **search-service** for **semantic search** (embeddings) and **hybrid retrieval**.
+## What I plan to build next (summer roadmap)
+Practical roadmap in the order I’d implement it:
 
-Potential extensions:
-- **support/assistant-service** – Q&A / RAG over events, venues, policies
-- **notification-service** – optional templated personalization and localization
+### Booking & inventory correctness
+- Implement a **full reservation lifecycle**:
+  - reserve tickets (already)
+  - release tickets on cancel/expiration (add a gRPC RPC + server impl)
+- Add **idempotency** and clearer state transitions (PENDING → CONFIRMED → CANCELLED/EXPIRED)
+- Improve concurrency tests (multi-thread + optimistic locking scenarios)
 
-LLMs are intentionally **not** planned for auth/booking/payment flows to keep security and consistency deterministic.
+### Seat model / pricing
+- Decide between:
+  - simple “general admission” inventory, or
+  - real seat map (sections/rows/seats)
+- Add price rules (per seat category, promo codes, fees)
+
+### Payment service (new)
+- `payment-service` with Stripe (or similar)
+- Webhooks + payment status reconciliation
+- Outbox pattern / reliable events (optional but realistic)
+
+### Async messaging + notifications
+- Introduce a message broker (**RabbitMQ or Kafka**)
+- Emit domain events (BookingCreated/Confirmed/Expired)
+- Implement `notification-service` (currently empty) to consume events (email/SMS later)
+
+### Caching & performance
+- Add **Redis** properly:
+  - caching read-heavy endpoints
+  - rate limiting / request throttling (gateway)
+- Load testing and profiling
+
+### Deployment & ops
+- Add CI (GitHub Actions): build + test + formatting/linting
+- Add observability:
+  - structured logs
+  - Micrometer metrics
+  - OpenTelemetry tracing
+- Dockerfiles per service + Compose for full stack
+- Kubernetes later (after the basics), with health checks and readiness probes
+
+### API gateway
+- Add an API gateway (Spring Cloud Gateway) for:
+  - routing
+  - auth enforcement
+  - basic rate limiting
+
+---
+
+## Repo structure
+```
+./
+  compose.yaml
+  pom.xml
+  ticketing-common/
+  auth-service/
+  event-service/
+  booking-service/
+  notification-service/
+```
 
 ---
 
