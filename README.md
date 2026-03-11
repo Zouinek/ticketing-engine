@@ -50,7 +50,7 @@ Default credentials (local dev only):
 
 ### 1) Start databases
 ```powershell
-cd C:\Users\aymen\Desktop\ticketing-engine
+cd C:\..\ticketing-engine
 docker compose up -d
 ```
 
